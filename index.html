@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #d1f7fa; /* لون خلفية فاتح */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #ff6f91; /* لون رأس الصفحة */
+            color: white;
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        #loginSection {
+            margin: 20px 0;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="password"], input[type="text"], input[type="datetime-local"] {
+            padding: 10px;
+            border: 2px solid #ff6f91; /* لون الزر */
+            border-radius: 5px;
+            margin: 5px 0;
+            width: 300px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s;
+        }
+
+        input[type="password"]:focus, input[type="text"]:focus, input[type="datetime-local"]:focus {
+            border-color: #ff3d5b; /* لون التركيز */
+            outline: none;
+        }
+
+        button {
+            background-color: #ff6f91; /* لون زر الإرسال */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #ff3d5b; /* لون الزر عند التحويم */
+        }
+
+        #messageSection {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            display: none; /* مخفي بشكل افتراضي */
+        }
+
+        #messageContainer {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #ffcccb; /* لون الرسالة */
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .message:hover {
+            background-color: #ffb3b3; /* لون الرسالة عند التحويم */
+        }
+
+        .reaction {
+            cursor: pointer;
+            display: inline-block;
+            margin-right: 5px;
+            font-size: 20px;
+        }
+
+        .comment-input {
+            margin-top: 10px;
+        }
+
+        .delete-button, .edit-button {
+            background-color: #d9534f; /* لون زر الحذف */
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .delete-button:hover, .edit-button:hover {
+            background-color: #c9302c; /* لون زر الحذف عند التحويم */
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            input[type="password"], input[type="text"], input[type="datetime-local"], button {
+                width: 100%;
+            }
+        }
+
+        .footer-description {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.4em; /* حجم الخط */
+            color: #ff3d5b; /* لون النص */
+            font-weight: bold; /* جعل الخط عريض */
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Secret</h1>
+    </header>
+
+    <div id="loginSection">
+        <input type="password" id="password" placeholder="أدخل كلمة المرور">
+        <button onclick="login()">تسجيل الدخول</button>
+    </div>
+
+    <div id="messageSection">
+        <div>
+            <input type="text" id="message" placeholder="اكتب رسالتك هنا..." required>
+            <input type="datetime-local" id="time" required>
+            <button onclick="sendMessage()">إرسال الرسالة</button>
+        </div>
+        <div id="messageContainer"></div>
+    </div>
+
+    <div class="footer-description">
+        ....فِي كُلِّ سَطْرٍ هُنَا، سِرُّ يُرْوَى        
+    </div>    
+
+    <script>
+        const PASSWORD = 'Heart4Teacher'; // ضع كلمة المرور الخاصة بك هنا
+        let currentUser = '';
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+        // استعادة كلمة المرور المخزنة إذا كانت موجودة
+        const savedPassword = localStorage.getItem('savedPassword');
+        const savedUsername = localStorage.getItem('savedUsername');
+
+        if (savedPassword && savedUsername) {
+            document.getElementById("password").value = savedPassword;
+            currentUser = savedUsername;
+            document.getElementById("loginSection").style.display = 'none';
+            document.getElementById("messageSection").style.display = 'block';
+            renderMessages();
+        } else {
+            document.getElementById("password").value = '';
+        }
+
+        function renderMessages() {
+            const messageContainer = document.getElementById("messageContainer");
+            messageContainer.innerHTML = '';
+            messages.forEach((msg, index) => {
+                const messageTime = new Date(msg.time);
+                const currentTime = new Date();
+                
+                // Check if the message time is in the future
+                if (messageTime > currentTime) {
+                    const msgDiv = document.createElement("div");
+                    msgDiv.className = 'message';
+                    msgDiv.innerHTML = `
+                        <p> هناك رسالة مهمة تنتظر بتاريخ: ${messageTime.toLocaleString()}</p>
+                    `;
+                    messageContainer.appendChild(msgDiv);
+                } else {
+                    const msgDiv = document.createElement("div");
+                    msgDiv.className = 'message';
+                    msgDiv.innerHTML = `
+                        <p>${msg.content}</p>
+                        <p class="timestamp">أُرسلت في: ${messageTime.toLocaleString()}</p>
+                        <div class="comment-input">
+                            <input type="text" placeholder="اكتب تعليقك هنا..." id="comment-${index}">
+                            <button onclick="addComment(${index})">تعليق</button>
+                            ${msg.sender === currentUser ? `
+                                <button class="edit-button" onclick="editMessage(${index})">تعديل</button>
+                                <button class="delete-button" onclick="deleteMessage(${index})">حذف</button>
+                            ` : ''}
+                        </div>
+                        <div>
+                            ${msg.comments.map(comment => `<p>${comment}</p>`).join('')}
+                        </div>
+                    `;
+                    messageContainer.appendChild(msgDiv);
+                }
+            });
+        }
+
+        function login() {
+            const passwordInput = document.getElementById("password").value;
+            if (passwordInput === PASSWORD) {
+                currentUser = prompt("يرجى إدخال اسمك:");
+                document.getElementById("loginSection").style.display = 'none';
+                document.getElementById("messageSection").style.display = 'block';
+
+                // حفظ كلمة المرور واسم المستخدم في localStorage
+                localStorage.setItem('savedPassword', passwordInput);
+                localStorage.setItem('savedUsername', currentUser);
+
+                renderMessages();
+            } else {
+                alert("كلمة المرور خاطئة!");
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById("message");
+            const timeInput = document.getElementById("time");
+            const messageText = messageInput.value;
+            const timeValue = timeInput.value;
+
+            if (messageText && timeValue) {
+                const message = {
+                    content: messageText,
+                    time: timeValue,
+                    sender: currentUser,
+                    comments: []
+                };
+                messages.push(message);
+                localStorage.setItem('messages', JSON.stringify(messages)); // تخزين الرسائل
+                renderMessages();
+                messageInput.value = "";
+                timeInput.value = "";
+            }
+        }
+
+        function addComment(messageIndex) {
+            const commentInput = document.getElementById(`comment-${messageIndex}`);
+            const commentText = commentInput.value;
+
+            if (commentText) {
+                messages[messageIndex].comments.push(commentText);
+                localStorage.setItem('messages', JSON.stringify(messages)); // تخزين التعليقات
+                renderMessages();
+                commentInput.value = "";
+            }
+        }
+
+        function editMessage(messageIndex) {
+            const messageContent = messages[messageIndex].content;
+            const newContent = prompt("قم بتعديل رسالتك:", messageContent);
+            if (newContent !== null) {
+                messages[messageIndex].content = newContent;
+                localStorage.setItem('messages', JSON.stringify(messages)); // تخزين التحديثات
+                renderMessages();
+            }
+        }
+
+        function deleteMessage(messageIndex) {
+            messages.splice(messageIndex, 1);
+            localStorage.setItem('messages', JSON.stringify(messages)); // تخزين التحديثات
+            renderMessages();
+        }
+
+        // عرض الرسائل عند تحميل الصفحة
+        renderMessages();
+    </script>
+</body>
+</html>
